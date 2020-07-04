@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
-use actix_web::{client::Client, post, get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{client::Client, get, post, web, App, HttpResponse, HttpServer, Responder};
 use bytes::BytesMut;
 use std::env;
 mod LineAPI;
@@ -31,7 +31,10 @@ async fn line_callback(
     "OK"
 }
 #[get("/keepalive")]
-async fn keepalive() -> impl Responder {
+async fn keepalive(
+    client: web::Data<Client>,
+    auth_token: web::Data<&String>,
+) -> impl Responder {
     LineAPI::keyword_switch::switch("螺絲醒醒").unwrap()
 }
 
