@@ -32,7 +32,6 @@ async fn line_callback(
 }
 #[get("/keepalive")]
 async fn keepalive(
-    client: web::Data<Client>,
     auth_token: web::Data<&String>,
 ) -> impl Responder {
     LineAPI::keyword_switch::switch("螺絲醒醒").unwrap()
