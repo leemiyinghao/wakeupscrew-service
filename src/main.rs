@@ -32,7 +32,7 @@ async fn line_callback(
 }
 #[get("/keepalive")]
 async fn keepalive() -> impl Responder {
-    "alive"
+    LineAPI::keyword_switch::switch("螺絲醒醒").unwrap()
 }
 
 #[actix_rt::main]
