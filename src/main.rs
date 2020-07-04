@@ -3,9 +3,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-use actix_web::{
-    client::Client, get, middleware, post, web, App, HttpServer, Responder,
-};
+use actix_web::{client::Client, get, middleware, post, web, App, HttpServer, Responder};
 use std::env;
 mod LineAPI;
 use std::sync::Arc;
@@ -41,6 +39,8 @@ async fn line_callback(
                 debug!("{:?}", response);
                 Ok(())
             });
+    } else {
+        debug!("{}", text_reply.unwrap());
     };
     "OK"
 }
