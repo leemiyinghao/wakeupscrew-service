@@ -21,7 +21,7 @@ async fn line_callback(
     auth_token: web::Data<Arc<Mutex<Config>>>,
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
-    debug!("{}", event.message.text);
+    info!("{}", event.message.text);
     let text_reply = LineAPI::keyword_switch::switch(&event.message.text[..]);
     if text_reply.is_ok() {
         let reply = LineAPI::LineReply {
@@ -37,7 +37,7 @@ async fn line_callback(
             .send_json(&reply)
             .await
             .and_then(|response| {
-                debug!("{:?}", response);
+                info!("{:?}", response);
                 Ok(())
             });
     };
