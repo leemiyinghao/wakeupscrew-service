@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
-use actix_web::{client::Client, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{client::Client, post, get, web, App, HttpResponse, HttpServer, Responder};
 use bytes::BytesMut;
 use std::env;
 mod LineAPI;
@@ -30,6 +30,10 @@ async fn line_callback(
     };
     "OK"
 }
+#[get("/keepalive")]
+async fn keepalive() -> impl Responder {
+    "alive"
+}
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -43,6 +47,7 @@ async fn main() -> std::io::Result<()> {
             .data(Client::default())
             .data(auth_token.clone())
             .service(line_callback)
+            .service(keepalive)
     })
     .bind(format!("0.0.0.0:{}", port))?
     .run()
