@@ -31,16 +31,21 @@ async fn line_callback(
                 text: String::from(text_reply.unwrap()),
             }],
         };
-        let mut res = client
-            .post("https://api.line.me/v2/bot/message/reply")
-            .bearer_auth(&auth_token.lock().unwrap().auth_token)
-            .send_json(&reply)
-            .await
-            .and_then(|response| {
-                debug!("{:?}", response);
-                Ok(())
+        {
+            let mut res = client
+                .post("https://api.line.me/v2/bot/message/reply")
+                .bearer_auth(&auth_token.lock().unwrap().auth_token)
+                .send_json(&reply)
+                .await
+                .unwrap();
+            debug!("connection finish, {}", res.status().as_u16());
+            res.body().await.map(move |body_out| {
+                debug!(
+                    "body: {}",
+                    &String::from_utf8(body_out.to_vec()).unwrap()[..]
+                )
             });
-        debug!("connection finish");
+        }
     } else {
         debug!("{}", text_reply.unwrap_err());
     };
