@@ -21,7 +21,7 @@ async fn line_callback(
     auth_token: web::Data<Arc<Mutex<Config>>>,
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
-    info!("{}", event.message.text);
+    debug!("{}", event.message.text);
     let text_reply = LineAPI::keyword_switch::switch(&event.message.text[..]);
     if text_reply.is_ok() {
         let reply = LineAPI::LineReply {
@@ -37,7 +37,7 @@ async fn line_callback(
             .send_json(&reply)
             .await
             .and_then(|response| {
-                info!("{:?}", response);
+                debug!("{:?}", response);
                 Ok(())
             });
     };
@@ -45,12 +45,13 @@ async fn line_callback(
 }
 #[get("/keepalive")]
 async fn keepalive() -> impl Responder {
-    info!("got keepalive");
+    debug!("got keepalive");
     LineAPI::keyword_switch::switch("螺絲醒醒").unwrap()
 }
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    std::env::set_var("RUST_LOG", "debug");
     let port: i32 = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse()
