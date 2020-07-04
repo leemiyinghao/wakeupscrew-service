@@ -5,7 +5,7 @@ extern crate log;
 extern crate env_logger;
 use actix_web::{client::Client, get, middleware, post, web, App, HttpServer, Responder};
 use std::env;
-mod LineAPI;
+mod line_api;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -15,18 +15,18 @@ struct Config {
 
 #[post("/line")]
 async fn line_callback(
-    data: web::Json<LineAPI::LineMsg>,
+    data: web::Json<line_api::LineMsg>,
     client: web::Data<Client>,
     auth_token: web::Data<Arc<Mutex<Config>>>,
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
     debug!("{}", event.message.text);
-    let text_reply = LineAPI::keyword_switch::switch(&event.message.text[..]);
+    let text_reply = line_api::keyword_switch::switch(&event.message.text[..]);
     if text_reply.is_ok() {
         debug!("text_reply.is_ok: {}", text_reply.unwrap());
-        let reply = LineAPI::LineReply {
+        let reply = line_api::LineReply {
             reply_token: event.reply_token.clone(),
-            messages: vec![LineAPI::LineReplyMessage {
+            messages: vec![line_api::LineReplyMessage {
                 r#type: String::from("text"),
                 text: String::from(text_reply.unwrap()),
             }],
@@ -39,26 +39,15 @@ async fn line_callback(
                 .await;
             if res.is_err() {
                 debug!("connect fail: {}", res.unwrap_err());
-            } else {
-                let mut response = res.unwrap();
-                debug!("connection finish, {}", response.status().as_u16());
-                response.body().await.map(move |body_out| {
-                    debug!(
-                        "body: {}",
-                        &String::from_utf8(body_out.to_vec()).unwrap()[..]
-                    )
-                });
             }
         }
-    } else {
-        debug!("{}", text_reply.unwrap_err());
     };
     "OK"
 }
 #[get("/keepalive")]
 async fn keepalive() -> impl Responder {
     debug!("got keepalive");
-    LineAPI::keyword_switch::switch("螺絲醒醒").unwrap()
+    line_api::keyword_switch::switch("螺絲醒醒").unwrap()
 }
 
 #[actix_rt::main]
