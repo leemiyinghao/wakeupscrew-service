@@ -2,6 +2,7 @@
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
+extern crate env_logger;
 use actix_web::{
     client::Client, get, middleware, post, web, App, HttpServer, Responder,
 };
@@ -51,7 +52,8 @@ async fn keepalive() -> impl Responder {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
+    env_logger::init();
+    info!("server start");
     let port: i32 = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse()
