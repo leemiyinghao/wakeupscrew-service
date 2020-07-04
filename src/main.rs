@@ -23,6 +23,7 @@ async fn line_callback(
     debug!("{}", event.message.text);
     let text_reply = LineAPI::keyword_switch::switch(&event.message.text[..]);
     if text_reply.is_ok() {
+        debug!("text_reply.is_ok: {}", text_reply.unwrap());
         let reply = LineAPI::LineReply {
             reply_token: event.reply_token.clone(),
             messages: vec![LineAPI::LineReplyMessage {
@@ -40,7 +41,7 @@ async fn line_callback(
                 Ok(())
             });
     } else {
-        debug!("{}", text_reply.unwrap());
+        debug!("{}", text_reply.unwrap_err());
     };
     "OK"
 }
