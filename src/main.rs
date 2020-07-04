@@ -38,7 +38,7 @@ async fn line_callback(
                 .send_json(&reply)
                 .await;
             if res.is_err() {
-                debug!("connect fail: {}", res.unwrap_err());
+                error!("connect fail: {}", res.unwrap_err());
             }
         }
     };
