@@ -1,15 +1,23 @@
 #[macro_use]
 extern crate lazy_static;
-use actix_web::{client::Client, get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    client::Client, get, middleware, post, web, App, HttpResponse, HttpServer, Responder,
+};
 use bytes::BytesMut;
 use std::env;
 mod LineAPI;
+use std::sync::Arc;
+use std::sync::Mutex;
+
+struct Config {
+    auth_token: String,
+}
 
 #[post("/line")]
 async fn line_callback(
     data: web::Json<LineAPI::LineMsg>,
     client: web::Data<Client>,
-    auth_token: web::Data<&String>,
+    auth_token: web::Data<Arc<Mutex<Config>>>,
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
     let text_reply = LineAPI::keyword_switch::switch(&event.message.text[..]);
@@ -21,19 +29,16 @@ async fn line_callback(
                 text: event.source.user_id.clone(),
             }],
         };
-
         let mut res = client
             .post("https://api.line.me/v2/bot/message/reply")
-            .bearer_auth(auth_token.into_inner())
+            .bearer_auth(&auth_token.lock().unwrap().auth_token)
             .send_json(&reply)
             .await;
     };
     "OK"
 }
 #[get("/keepalive")]
-async fn keepalive(
-    auth_token: web::Data<&String>,
-) -> impl Responder {
+async fn keepalive() -> impl Responder {
     LineAPI::keyword_switch::switch("螺絲醒醒").unwrap()
 }
 
@@ -44,10 +49,14 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .expect("PORT must be a number");
     let auth_token: String = env::var("AUTH_TOKEN").unwrap();
+    let config = Arc::new(Mutex::new(Config {
+        auth_token: auth_token,
+    }));
     HttpServer::new(move || {
         App::new()
+            .wrap(middleware::Logger::default())
+            .data(config.clone())
             .data(Client::default())
-            .data(auth_token.clone())
             .service(line_callback)
             .service(keepalive)
     })
