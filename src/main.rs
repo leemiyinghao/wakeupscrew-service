@@ -27,8 +27,8 @@ async fn line_callback(
         let reply = LineAPI::LineReply {
             reply_token: event.reply_token.clone(),
             messages: vec![LineAPI::LineReplyMessage {
-                r#type: String::from(text_reply.unwrap()),
-                text: event.source.user_id.clone(),
+                r#type: String::from("text"),
+                text: String::from(text_reply.unwrap()),
             }],
         };
         let mut res = client
@@ -40,6 +40,7 @@ async fn line_callback(
                 debug!("{:?}", response);
                 Ok(())
             });
+        debug!("connection finish");
     } else {
         debug!("{}", text_reply.unwrap_err());
     };
