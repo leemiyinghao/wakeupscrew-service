@@ -1,9 +1,10 @@
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
 use actix_web::{
-    client::Client, get, middleware, post, web, App, HttpResponse, HttpServer, Responder,
+    client::Client, get, middleware, post, web, App, HttpServer, Responder,
 };
-use bytes::BytesMut;
 use std::env;
 mod LineAPI;
 use std::sync::Arc;
@@ -20,6 +21,7 @@ async fn line_callback(
     auth_token: web::Data<Arc<Mutex<Config>>>,
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
+    debug!("{}", event.message.text);
     let text_reply = LineAPI::keyword_switch::switch(&event.message.text[..]);
     if text_reply.is_ok() {
         let reply = LineAPI::LineReply {
@@ -33,7 +35,11 @@ async fn line_callback(
             .post("https://api.line.me/v2/bot/message/reply")
             .bearer_auth(&auth_token.lock().unwrap().auth_token)
             .send_json(&reply)
-            .await;
+            .await
+            .and_then(|response| {
+                debug!("{:?}", response);
+                Ok(())
+            });
     };
     "OK"
 }
