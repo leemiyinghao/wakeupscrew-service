@@ -36,15 +36,19 @@ async fn line_callback(
                 .post("https://api.line.me/v2/bot/message/reply")
                 .bearer_auth(&auth_token.lock().unwrap().auth_token)
                 .send_json(&reply)
-                .await
-                .unwrap();
-            debug!("connection finish, {}", res.status().as_u16());
-            res.body().await.map(move |body_out| {
-                debug!(
-                    "body: {}",
-                    &String::from_utf8(body_out.to_vec()).unwrap()[..]
-                )
-            });
+                .await;
+            if res.is_err() {
+                debug!("connect fail: {}", res.unwrap_err());
+            } else {
+                let mut response = res.unwrap();
+                debug!("connection finish, {}", response.status().as_u16());
+                response.body().await.map(move |body_out| {
+                    debug!(
+                        "body: {}",
+                        &String::from_utf8(body_out.to_vec()).unwrap()[..]
+                    )
+                });
+            }
         }
     } else {
         debug!("{}", text_reply.unwrap_err());
