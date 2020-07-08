@@ -9,6 +9,8 @@ mod line_api;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+mod google_image;
+
 struct Config {
     auth_token: String,
 }
@@ -21,15 +23,12 @@ async fn line_callback(
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
     debug!("{}", event.message.text);
-    let text_reply = line_api::keyword_switch::switch(&event.message.text[..]);
-    if text_reply.is_ok() {
-        debug!("text_reply.is_ok: {}", text_reply.unwrap());
-        let reply = line_api::LineReply {
+    let _reply = line_api::keyword_switch::switch(&event.message.text[..]);
+    if _reply.is_ok() {
+
+        let reply = line_api::LineReply{
             reply_token: event.reply_token.clone(),
-            messages: vec![line_api::LineReplyMessage {
-                r#type: String::from("text"),
-                text: String::from(text_reply.unwrap()),
-            }],
+            messages: _reply.unwrap().messages
         };
         {
             let mut res = client
@@ -47,7 +46,7 @@ async fn line_callback(
 #[get("/keepalive")]
 async fn keepalive() -> impl Responder {
     debug!("got keepalive");
-    line_api::keyword_switch::switch("螺絲醒醒").unwrap()
+    "i'm alive"
 }
 
 #[actix_rt::main]
