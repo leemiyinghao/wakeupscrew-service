@@ -27,7 +27,7 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
-    println!("https://www.google.com/search?q={}&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
+    debug!("https://www.google.com/search?q={}&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
     let uri = format!("https://www.google.com/search?q={}&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg", utf8_percent_encode(keyword, FRAGMENT).collect::<String>()).parse().expect("uri encoding fail");
     let page = client.get(uri).await.expect("page fetch fail");
     let buf = hyper::body::to_bytes(page)
