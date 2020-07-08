@@ -70,7 +70,7 @@ async fn upload(data: bytes::Bytes) -> Result<String, String> {
     let buf = hyper::body::to_bytes(page)
         .await
         .expect("page receive fail");
-    println!("{:?}", buf);
+    debug!("{:?}", buf);
     let response: ImgurBasicResponse = serde_json::from_slice(&buf).expect("response parse fail");
     Ok(String::from(response.data.link))
 }
