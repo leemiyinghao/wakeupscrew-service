@@ -2,9 +2,8 @@ use crate::google_image;
 use crate::line_api;
 use regex::Regex;
 use std::result::Result;
-use futures::executor::block_on;
 
-pub fn switch(keyword: &str) -> Result<line_api::LineReply, &'static str> {
+pub async fn switch(keyword: &str) -> Result<line_api::LineReply, &'static str> {
     lazy_static! {
         static ref VEC2SEQ_RULE: Regex = Regex::new(r"[^\.]+\.\.\.$").unwrap();
         static ref FIND_IMAGE_RULE: Regex = Regex::new(r"[^\s]\.jpg$").unwrap();
@@ -19,7 +18,7 @@ pub fn switch(keyword: &str) -> Result<line_api::LineReply, &'static str> {
         });
     }
     if FIND_IMAGE_RULE.is_match(keyword) {
-        let image = block_on(google_image::get(keyword));
+        let image = google_image::get(keyword).await;
         if image.is_err() {
             return Ok(line_api::LineReply {
                 reply_token: String::from(""),

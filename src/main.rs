@@ -23,7 +23,7 @@ async fn line_callback(
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
     debug!("{}", event.message.text);
-    let _reply = line_api::keyword_switch::switch(&event.message.text[..]);
+    let _reply = line_api::keyword_switch::switch(&event.message.text[..]).await;
     if _reply.is_ok() {
 
         let reply = line_api::LineReply{
