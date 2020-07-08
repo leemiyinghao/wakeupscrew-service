@@ -75,9 +75,9 @@ async fn upload(data: bytes::Bytes) -> Result<String, String> {
 }
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
-    let target: ImageTarget = tokit_runtime.block_on(search(keyword))?;
-    let data = tokit_runtime.block_on(download(target.img_url))?;
-    let url = tokit_runtime.block_on(upload(data)).expect("fail upload");
+    let target: ImageTarget = search(keyword).await?;
+    let data = download(target.img_url).await?;
+    let url = upload(data).await.expect("fail upload");
     Ok(ImageTarget {
         img_url: String::from(url),
         page_url: target.page_url,
