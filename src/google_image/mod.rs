@@ -75,7 +75,6 @@ async fn upload(data: bytes::Bytes) -> Result<String, String> {
     Ok(String::from(response.data.link))
 }
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
-    let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
     let target: ImageTarget = search(keyword).await?;
     let data = download(target.img_url).await?;
     let url = upload(data).await.expect("fail upload");
@@ -85,10 +84,10 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     })
 }
 #[cfg(test)]
-use futures::executor::block_on;
 #[test]
 pub fn test_google_image() {
-    let result = block_on(get("修但幾勒")).unwrap();
+    let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
+    let result = tokit_runtime.block_on(get("修但幾勒")).unwrap();
     println!("{:?}", result);
     assert_eq!(1 + 1, 2);
 }
