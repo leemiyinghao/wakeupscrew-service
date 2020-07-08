@@ -33,7 +33,7 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     let buf = hyper::body::to_bytes(page)
         .await
         .expect("page receive fail");
-    let page = std::str::from_utf8(&buf).expect("page parse fail");
+    let page = std::str::from_utf8_unchecked(&buf);
     let document = Html::parse_document(page);
     // println!("{}", page);
     let selector = Selector::parse(r#"img.t0fcAb"#).unwrap();
