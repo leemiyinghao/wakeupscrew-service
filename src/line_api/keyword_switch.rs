@@ -28,25 +28,33 @@ pub async fn switch(keyword: &str) -> Result<line_api::LineReply, &'static str> 
             });
         } else {
             let unwraped = image.unwrap();
+            // return Ok(line_api::LineReply {
+            //     reply_token: String::from(""),
+            //     messages: vec![line_api::LineMessageType::Flex{
+            //         alt_text: String::from(keyword),
+            //         contents: line_api::SimpleImageFlexContainer{
+            //             r#type: String::from("bubble"),
+            //             hero: line_api::SimpleImageComponent{
+            //                 r#type: String::from("image"),
+            //                 url: unwraped.img_url,
+            //                 size: String::from("full"),
+            //                 aspectRatio: String::from("1:1"),
+            //                 aspectMode: String::from("cover"),
+            //                 action: line_api::Action{
+            //                     r#type: String::from("uri"),
+            //                     uri: unwraped.page_url,
+            //                 }
+            //             }
+
+            //         }
+            //     }],
+            // });
+            let img_url = unwraped.img_url;
             return Ok(line_api::LineReply {
                 reply_token: String::from(""),
-                messages: vec![line_api::LineMessageType::Flex{
-                    alt_text: String::from(keyword),
-                    contents: line_api::SimpleImageFlexContainer{
-                        r#type: String::from("bubble"),
-                        hero: line_api::SimpleImageComponent{
-                            r#type: String::from("image"),
-                            url: unwraped.img_url,
-                            size: String::from("full"),
-                            aspectRatio: String::from("1:1"),
-                            aspectMode: String::from("cover"),
-                            action: line_api::Action{
-                                r#type: String::from("uri"),
-                                uri: unwraped.page_url,
-                            }
-                        }
-
-                    }
+                messages: vec![line_api::LineMessageType::Image {
+                    original_content_url: img_url.clone(),
+                    preview_image_url: img_url.clone(),
                 }],
             });
         }
