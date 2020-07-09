@@ -8,6 +8,9 @@ use serde_json;
 use std::fs::File;
 use std::io::Write;
 use tokio::runtime::Runtime;
+#[macro_use]
+use log;
+use env_logger;
 
 #[derive(Debug)]
 pub struct ImageTarget {
@@ -49,14 +52,16 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     }
     let buf = hyper::body::to_bytes(page.unwrap()).await;
     if buf.is_err() {
-        println!("{:?}", buf);
+        debug!("{:?}", buf);
         return Err(String::from("body to bytes fail"));
     }
     let buff = buf.unwrap();
     // let mut output = File::create("result.html").unwrap();
     // output.write(&buff).unwrap();
     let page = String::from_utf8_lossy(&buff);
-    let target_rule = regex::Regex::new(r#"\["GRID_STATE0".+"(?:https?[^"]+)"[^\]]+\][^\[]+\["(https?[^"]+)""#).unwrap();
+    let target_rule =
+        regex::Regex::new(r#"\["GRID_STATE0".+"(?:https?[^"]+)"[^\]]+\][^\[]+\["(https?[^"]+)""#)
+            .unwrap();
     // let document = Html::parse_document(&page[..]);
     // let selector = Selector::parse(r#"img.t0fcAb"#).unwrap(); //no need to check static variable
     // let raw_jsdata = document.select(&selector).next();
@@ -87,7 +92,7 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     //     page_url: String::from(&page_url.unwrap()[7..]),
     // })
     let m = target_rule.captures(&page[..]);
-    if m.is_none(){
+    if m.is_none() {
         return Err(String::from("img_url not found"));
     }
     let img_url = m.unwrap().get(1);
@@ -100,11 +105,19 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     }
 }
 async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
-    let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
     let uri = url.parse().expect("uri encoding fail");
-    let page = client.get(uri).await.expect("page fetch fail");
-    let buf = hyper::body::to_bytes(page).await.unwrap();
+    let page = if url.starts_with("https") {
+        let https = HttpsConnector::new();
+        let client = Client::builder().build::<_, hyper::Body>(https);
+        client.get(uri).await
+    } else {
+        let client = Client::new();
+        client.get(uri).await
+    };
+    if page.is_err() {
+        return Err(String::from("image download fail"));
+    };
+    let buf = hyper::body::to_bytes(page.unwrap()).await.unwrap();
     Ok(Box::new(buf))
 }
 async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
@@ -133,7 +146,7 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
 }
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     let target: ImageTarget = search(keyword).await?;
-    println!("{:?}", target.img_url);
+    debug!("{:?}", target.img_url);
     let data = download(target.img_url).await?;
     let url = upload(data).await?;
     Ok(ImageTarget {
@@ -145,7 +158,7 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
 #[test]
 pub fn test_google_image() {
     let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
-    let result = tokit_runtime.block_on(get("修但幾勒")).unwrap();
+    let result = tokit_runtime.block_on(get("主委加碼")).unwrap();
     println!("{:?}", result);
     assert_eq!(1 + 1, 2);
     let result2 = tokit_runtime.block_on(get("https://media.discordapp.net/attachments/483550384133111808/730210148785848390/65656859_2475814475772800_5557129747592380416_n"));

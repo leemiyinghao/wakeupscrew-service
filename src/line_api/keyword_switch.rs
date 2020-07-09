@@ -1,3 +1,7 @@
+
+#[macro_use]
+use log;
+use env_logger;
 use crate::google_image;
 use crate::line_api;
 use regex::Regex;
@@ -33,7 +37,7 @@ pub async fn switch(keyword: &str) -> Result<line_api::LineReply, String> {
                 }],
             },
             Err(x) => {
-                println!("{:?}", x);
+                error!("{:?}", x);
                 line_api::LineReply {
                 reply_token: String::from(""),
                 messages: vec![line_api::LineMessageType::Text {
