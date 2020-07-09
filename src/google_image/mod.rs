@@ -128,7 +128,7 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
     let response: Result<ImgurBasicResponse, serde_json::Error> = serde_json::from_slice(&bbuf);
     match response {
         Ok(x) => Ok(String::from(x.data.link)),
-        Err(_) => Err(String::from("Imgur response parse fail")),
+        Err(x) => Err(format!("Imgur response parse fail: {:?}", x)),
     }
 }
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
