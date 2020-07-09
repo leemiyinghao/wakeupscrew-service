@@ -123,7 +123,7 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
         upload(data).await?
     }else{
         target.img_url
-    }
+    };
     Ok(ImageTarget {
         img_url: String::from(url),
         page_url: target.page_url,
