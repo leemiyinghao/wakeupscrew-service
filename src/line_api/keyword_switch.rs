@@ -32,12 +32,14 @@ pub async fn switch(keyword: &str) -> Result<line_api::LineReply, String> {
                     preview_image_url: x.img_url.clone(),
                 }],
             },
-            Err(x) => line_api::LineReply {
+            Err(x) => {
+                println!("{:?}", x);
+                line_api::LineReply {
                 reply_token: String::from(""),
                 messages: vec![line_api::LineMessageType::Text {
                     text: String::from("螺絲找不到，螺絲 QQ"),
                 }],
-            },
+            }},
         });
     }
     if WAKEUP_RULE.is_match(keyword) {
