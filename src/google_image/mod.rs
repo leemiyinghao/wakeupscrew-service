@@ -118,7 +118,7 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     let target: ImageTarget = search(keyword).await?;
     debug!("{:?}", target.img_url);
-    let url = if target.img_url.starts_with("http"){
+    let url = if !target.img_url.starts_with("https"){
         let data = download(target.img_url).await?;
         upload(data).await?
     }else{
