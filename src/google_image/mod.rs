@@ -133,6 +133,7 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
 }
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     let target: ImageTarget = search(keyword).await?;
+    println!("{:?}", target.img_url);
     let data = download(target.img_url).await?;
     let url = upload(data).await?;
     Ok(ImageTarget {
