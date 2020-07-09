@@ -60,37 +60,8 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     // output.write(&buff).unwrap();
     let page = String::from_utf8_lossy(&buff);
     let target_rule =
-        regex::Regex::new(r#"\["GRID_STATE0".+"(?:https?[^"]+)"[^\]]+\][^\[]+\["(https?[^"]+)""#)
+        regex::Regex::new(r#"\["(https?[^"]+\.(?:jpe?g|JPE?G|png|PNG))",\d+,\d+\]"#)
             .unwrap();
-    // let document = Html::parse_document(&page[..]);
-    // let selector = Selector::parse(r#"img.t0fcAb"#).unwrap(); //no need to check static variable
-    // let raw_jsdata = document.select(&selector).next();
-    // if raw_jsdata.is_none() {
-    //     println!("{:?}", raw_jsdata);
-    //     return Err(String::from("raw_jsdata not found"));
-    // }
-    // let raw_jsdata_element = raw_jsdata.unwrap();
-    // let img_url = raw_jsdata_element.value().attr("src");
-    // let page_url = match raw_jsdata_element.parent() {
-    //     Some(x) => match x.parent() {
-    //         Some(y) => match scraper::ElementRef::wrap(y) {
-    //             Some(z) => match z.value().attr("href") {
-    //                 Some(xx) => Some(xx),
-    //                 None => None,
-    //             },
-    //             None => None,
-    //         },
-    //         None => None,
-    //     },
-    //     None => None,
-    // };
-    // if img_url.is_none() || page_url.is_none() {
-    //     return Err(String::from("urls non-exist"));
-    // }
-    // Ok(ImageTarget {
-    //     img_url: String::from(img_url.unwrap()),
-    //     page_url: String::from(&page_url.unwrap()[7..]),
-    // })
     let m = target_rule.captures(&page[..]);
     if m.is_none() {
         return Err(String::from("img_url not found"));
@@ -147,8 +118,12 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     let target: ImageTarget = search(keyword).await?;
     debug!("{:?}", target.img_url);
-    let data = download(target.img_url).await?;
-    let url = upload(data).await?;
+    let url = if target.img_url.starts_with("http"){
+        let data = download(target.img_url).await?;
+        upload(data).await?
+    }else{
+        target.img_url
+    }
     Ok(ImageTarget {
         img_url: String::from(url),
         page_url: target.page_url,
@@ -158,7 +133,7 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
 #[test]
 pub fn test_google_image() {
     let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
-    let result = tokit_runtime.block_on(get("主委加碼")).unwrap();
+    let result = tokit_runtime.block_on(get("今日も一日がんばるぞい")).unwrap();
     println!("{:?}", result);
     assert_eq!(1 + 1, 2);
     let result2 = tokit_runtime.block_on(get("https://media.discordapp.net/attachments/483550384133111808/730210148785848390/65656859_2475814475772800_5557129747592380416_n"));
