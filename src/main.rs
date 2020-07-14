@@ -20,16 +20,16 @@ async fn line_callback(
     data: web::Json<line_api::LineMsg>,
     client: web::Data<Client>,
     auth_token: web::Data<Arc<Mutex<Config>>>,
+    vec2seq: web::Data<Arc<Mutex<vec2seq_rust::Vec2Seq<'_>>>>,
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
     info!("{}", event.message.text);
-    let _reply = line_api::keyword_switch::switch(&event.message.text[..]).await;
+    let _reply = line_api::keyword_switch::switch(&event.message.text[..], &vec2seq.lock().unwrap()).await;
     info!("{:?}", _reply);
     if _reply.is_ok() {
-
-        let reply = line_api::LineReply{
+        let reply = line_api::LineReply {
             reply_token: event.reply_token.clone(),
-            messages: _reply.unwrap().messages
+            messages: _reply.unwrap().messages,
         };
         {
             let mut res = client
@@ -58,19 +58,31 @@ async fn main() -> std::io::Result<()> {
         .unwrap_or_else(|_| "3000".to_string())
         .parse()
         .expect("PORT must be a number");
+    let host: String = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     let auth_token: String = env::var("AUTH_TOKEN").unwrap();
     let config = Arc::new(Mutex::new(Config {
         auth_token: auth_token,
     }));
+    let vec2seq = Arc::new(Mutex::new(vec2seq_rust::Vec2Seq::new(
+        std::path::Path::new("finalfusion.10e.w_zh_en_ptt.s60.pq.fifu"),
+        std::path::Path::new("tfidf.bin"),
+        std::path::Path::new("stopwords.txt"),
+        std::path::Path::new("reply_group.index.granne"),
+        std::path::Path::new("reply.index.granne"),
+        std::path::Path::new("reply_group.element.granne"),
+        std::path::Path::new("reply.element.granne"),
+        std::path::Path::new("db/reply_group"),
+    )));
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .data(config.clone())
             .data(Client::default())
+            .data(vec2seq.clone())
             .service(line_callback)
             .service(keepalive)
     })
-    .bind(format!("0.0.0.0:{}", port))?
+    .bind(format!("{}:{}", host, port))?
     .run()
     .await
 }
