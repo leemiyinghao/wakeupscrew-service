@@ -3,7 +3,12 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-use actix_web::{client::Client, get, middleware, post, web, App, HttpServer, Responder};
+use actix::{Actor, StreamHandler};
+use actix_web::{
+    client::Client, get, middleware, post, web, App, Error, HttpRequest, HttpResponse, HttpServer,
+    Responder,
+};
+use actix_web_actors::ws;
 use std::env;
 mod line_api;
 use std::sync::Arc;
@@ -13,6 +18,26 @@ mod google_image;
 
 struct Config {
     auth_token: String,
+}
+struct WsActor;
+impl Actor for WsActor {
+    type Context = ws::WebsocketContext<Self>;
+}
+
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsActor {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
+        match msg {
+            Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
+            Ok(ws::Message::Text(text)) => ctx.text(text),
+            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
+            _ => (),
+        }
+    }
+}
+
+async fn reply(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+    let resp = ws::start(WsActor {}, &req, stream);
+    resp
 }
 
 #[post("/line")]
@@ -24,7 +49,9 @@ async fn line_callback(
 ) -> impl Responder {
     let event = data.events.get(0).unwrap();
     info!("{}", event.message.text);
-    let _reply = line_api::keyword_switch::switch(&event.message.text[..], &vec2seq.lock().unwrap()).await;
+    //group history memorizer
+    let _reply =
+        line_api::keyword_switch::switch(&event.message.text[..], &vec2seq.lock().unwrap()).await;
     info!("{:?}", _reply);
     if _reply.is_ok() {
         let reply = line_api::LineReply {
@@ -79,6 +106,7 @@ async fn main() -> std::io::Result<()> {
             .data(config.clone())
             .data(Client::default())
             .data(vec2seq.clone())
+            .route("/reply/", web::get().to(reply))
             .service(line_callback)
             .service(keepalive)
     })
