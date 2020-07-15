@@ -45,8 +45,8 @@ pub async fn switch(
             return Ok(line_api::LineReply {
                 reply_token: String::from(""),
                 messages: vec![line_api::LineMessageType::Image {
-                    original_content_url: keyword.clone(),
-                    preview_image_url: keyword.clone(),
+                    original_content_url: keyword.to_string().clone(),
+                    preview_image_url: keyword.to_string().clone(),
                 }],
             })
         }
