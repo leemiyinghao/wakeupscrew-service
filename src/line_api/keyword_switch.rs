@@ -3,10 +3,10 @@ use log;
 use crate::google_image;
 use crate::line_api;
 use env_logger;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use regex::Regex;
 use std::result::Result;
-use rand::thread_rng;
-use rand::seq::SliceRandom;
 
 pub async fn switch(
     keyword: &str,
@@ -14,7 +14,9 @@ pub async fn switch(
 ) -> Result<line_api::LineReply, String> {
     lazy_static! {
         static ref VEC2SEQ_RULE: Regex = Regex::new(r"([^\.]+)(?:\.\.\.|…|⋯)$").unwrap();
-        static ref FIND_IMAGE_RULE: Regex = Regex::new(r"^([^\s]+)\.jpg$").unwrap();
+        static ref FIND_IMAGE_RULE: Regex = Regex::new(r"^([^\s]+)\.(?:jpg|png|PNG|JPG)$").unwrap();
+        static ref CONVERT_IMAGE_RULE: Regex =
+            Regex::new(r"^https([^\s]+)\.(?:jpg|png|PNG|JPG)$").unwrap();
         static ref WAKEUP_RULE: Regex = Regex::new(r".+醒醒$").unwrap();
     }
     if VEC2SEQ_RULE.is_match(keyword) {
@@ -39,6 +41,15 @@ pub async fn switch(
         });
     }
     if FIND_IMAGE_RULE.is_match(keyword) {
+        if CONVERT_IMAGE_RULE.is_match(keyword) {
+            Ok(line_api::LineReply {
+                reply_token: String::from(""),
+                messages: vec![line_api::LineMessageType::Image {
+                    original_content_url: keyword.clone(),
+                    preview_image_url: keyword.clone(),
+                }],
+            })
+        }
         let _keyword_iter = FIND_IMAGE_RULE.captures_iter(keyword).next();
         if _keyword_iter.is_none() {
             return Err(String::from("keyword fetch fail"));
