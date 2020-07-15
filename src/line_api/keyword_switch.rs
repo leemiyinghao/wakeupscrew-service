@@ -42,7 +42,7 @@ pub async fn switch(
     }
     if FIND_IMAGE_RULE.is_match(keyword) {
         if CONVERT_IMAGE_RULE.is_match(keyword) {
-            Ok(line_api::LineReply {
+            return Ok(line_api::LineReply {
                 reply_token: String::from(""),
                 messages: vec![line_api::LineMessageType::Image {
                     original_content_url: keyword.clone(),
