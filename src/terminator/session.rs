@@ -45,10 +45,10 @@ impl WsChatSession<'static> {
         let room_name = room_name.to_owned();
 
         // First send a leave message for the current room
-        let leave_msg = LeaveRoom(self.room.clone(), self.name.clone(), self.id);
+        // let leave_msg = LeaveRoom(self.room.clone(), self.name.clone(), self.id);
 
         // issue_sync comes from having the `BrokerIssue` trait in scope.
-        self.issue_system_sync(leave_msg, ctx);
+        // self.issue_system_sync(leave_msg, ctx);
 
         // Then send a join message for the new room
         let join_msg = JoinRoom(
@@ -102,6 +102,8 @@ impl Actor for WsChatSession<'static> {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
+        let leave_msg = LeaveRoom(self.room.clone(), self.name.clone(), self.id);
+        self.issue_system_async(leave_msg);
         info!(
             "WsChatSession closed for {} in room {}",
             self.name.clone(),
@@ -177,11 +179,14 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                             WsMessage::unpin => {
                                 self.send_msg(json!(WsMessage::unpin).to_string());
                             },
+                            WsMessage::ping => {
+                                self.send_msg(json!(WsMessage::pong).to_string());
+                            },
                             _ => (),
                         }
                     }
                     Err(e) => {
-                        println!("{:?}: {:?}", e, text);
+                        // println!("{:?}: {:?}", e, text);
                     }
                 };
             }

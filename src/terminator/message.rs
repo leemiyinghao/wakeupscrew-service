@@ -30,6 +30,8 @@ pub enum WsMessage {
     received(Text),
     pin(Message),
     unpin,
+    ping,
+    pong
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Message {
