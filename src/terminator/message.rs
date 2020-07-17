@@ -35,7 +35,6 @@ pub enum WsMessage {
 pub struct Message {
     pub name: String,
     pub iconType: i32,
-    pub room: String,
     pub text: String,
     pub reliable: bool,
 }

@@ -137,7 +137,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                         // println!("{:?}", x);
                         match x {
                             WsMessage::message(message) => {
-                                self.send_msg(json!(message).to_string());
+                                self.send_msg(text.clone());
                                 if message.reliable {
                                     self.send_msg(
                                         json!(WsMessage::received(Text {
@@ -172,7 +172,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                                 }
                             },
                             WsMessage::pin(pin) => {
-                                self.send_msg(json!(pin).to_string());
+                                self.send_msg(text.clone());
                             },
                             WsMessage::unpin => {
                                 self.send_msg(json!(WsMessage::unpin).to_string());
