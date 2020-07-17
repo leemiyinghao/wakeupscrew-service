@@ -96,14 +96,14 @@ async fn main() -> std::io::Result<()> {
         auth_token: auth_token,
     }));
     let vec2seq = Arc::new(Mutex::new(vec2seq_rust::Vec2Seq::new(
-        std::path::Path::new("../cut_corpus/finalfusion.10e.w_zh_en_ptt.s60.pq.fifu"),
-        std::path::Path::new("../vec2seq_rust/tfidf.bin"),
-        std::path::Path::new("../vec2seq_rust/stopwords.txt"),
-        std::path::Path::new("../vec2seq_rust/reply_group.index.granne"),
-        std::path::Path::new("../vec2seq_rust/reply.index.granne"),
-        std::path::Path::new("../vec2seq_rust/reply_group.element.granne"),
-        std::path::Path::new("../vec2seq_rust/reply.element.granne"),
-        std::path::Path::new("../vec2seq_rust/db/reply_group"),
+        std::path::Path::new("finalfusion.10e.w_zh_en_ptt.s60.pq.fifu"),
+        std::path::Path::new("tfidf.bin"),
+        std::path::Path::new("stopwords.txt"),
+        std::path::Path::new("reply_group.index.granne"),
+        std::path::Path::new("reply.index.granne"),
+        std::path::Path::new("reply_group.element.granne"),
+        std::path::Path::new("reply.element.granne"),
+        std::path::Path::new("db/reply_group"),
     )));
     HttpServer::new(move || {
         App::new()
