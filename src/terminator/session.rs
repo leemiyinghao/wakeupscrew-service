@@ -181,7 +181,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                         }
                     }
                     Err(e) => {
-                        // println!("{:?}", e);
+                        println!("{:?}: {:?}", e, text);
                     }
                 };
             }
