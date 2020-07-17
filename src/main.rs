@@ -3,41 +3,40 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-use actix::{Actor, StreamHandler};
+use actix::prelude::*;
+use actix::*;
+use actix::{Actor, Addr, StreamHandler};
 use actix_web::{
     client::Client, get, middleware, post, web, App, Error, HttpRequest, HttpResponse, HttpServer,
     Responder,
 };
 use actix_web_actors::ws;
+use actix_web_actors::ws::{Message, WebsocketContext};
 use std::env;
 mod line_api;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::Instant;
 
 mod google_image;
+mod terminator;
+use terminator::{session::WsChatSession, WsChatServer};
 
 struct Config {
     auth_token: String,
 }
-struct WsActor;
-impl Actor for WsActor {
-    type Context = ws::WebsocketContext<Self>;
-}
 
-impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsActor {
-    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
-        match msg {
-            Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
-            Ok(ws::Message::Text(text)) => ctx.text(text),
-            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
-            _ => (),
-        }
-    }
-}
-
-async fn reply(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    let resp = ws::start(WsActor {}, &req, stream);
-    resp
+async fn reply<'a>(
+    info: web::Path<(String, String, i32)>,
+    req: HttpRequest,
+    stream: web::Payload,
+    vec2seq: web::Data<Arc<Mutex<vec2seq_rust::Vec2Seq<'static>>>>,
+) -> Result<HttpResponse, Error> {
+    let session = WsChatSession::new(0, info.0.clone(), info.1.clone(), info.2, vec2seq.clone());
+    ws::start(session, &req, stream)
 }
 
 #[post("/line")]
@@ -86,19 +85,25 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .expect("PORT must be a number");
     let host: String = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let auth_token: String = env::var("AUTH_TOKEN").unwrap();
+    let auth_token: String = match env::var("AUTH_TOKEN") {
+        Ok(x) => x,
+        Err(_) => {
+            error!("server runs without line api key: AUTH_TOKEN, set one at .env or shell env.");
+            "".to_string()
+        }
+    };
     let config = Arc::new(Mutex::new(Config {
         auth_token: auth_token,
     }));
     let vec2seq = Arc::new(Mutex::new(vec2seq_rust::Vec2Seq::new(
-        std::path::Path::new("finalfusion.10e.w_zh_en_ptt.s60.pq.fifu"),
-        std::path::Path::new("tfidf.bin"),
-        std::path::Path::new("stopwords.txt"),
-        std::path::Path::new("reply_group.index.granne"),
-        std::path::Path::new("reply.index.granne"),
-        std::path::Path::new("reply_group.element.granne"),
-        std::path::Path::new("reply.element.granne"),
-        std::path::Path::new("db/reply_group"),
+        std::path::Path::new("../cut_corpus/finalfusion.10e.w_zh_en_ptt.s60.pq.fifu"),
+        std::path::Path::new("../vec2seq_rust/tfidf.bin"),
+        std::path::Path::new("../vec2seq_rust/stopwords.txt"),
+        std::path::Path::new("../vec2seq_rust/reply_group.index.granne"),
+        std::path::Path::new("../vec2seq_rust/reply.index.granne"),
+        std::path::Path::new("../vec2seq_rust/reply_group.element.granne"),
+        std::path::Path::new("../vec2seq_rust/reply.element.granne"),
+        std::path::Path::new("../vec2seq_rust/db/reply_group"),
     )));
     HttpServer::new(move || {
         App::new()
@@ -106,7 +111,7 @@ async fn main() -> std::io::Result<()> {
             .data(config.clone())
             .data(Client::default())
             .data(vec2seq.clone())
-            .route("/reply/", web::get().to(reply))
+            .route("/reply/{room}/{name}/{iconType}", web::get().to(reply))
             .service(line_callback)
             .service(keepalive)
     })
