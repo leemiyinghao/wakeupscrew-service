@@ -23,6 +23,8 @@ pub struct WsChatSession<'a> {
     pub name: String,
     pub iconType: i32,
     pub vec2seq: web::Data<Arc<Mutex<vec2seq_rust::Vec2Seq<'a>>>>,
+    pub terminator_threshold: f32,
+    pub terminator_self_compare: Option<f32>,
 }
 
 impl WsChatSession<'static> {
@@ -32,13 +34,17 @@ impl WsChatSession<'static> {
         name: String,
         iconType: i32,
         vec2seq: web::Data<Arc<Mutex<vec2seq_rust::Vec2Seq<'static>>>>,
+        config: web::Data<Arc<Mutex<crate::Config>>>,
     ) -> Self {
+        let config = config.lock().unwrap();
         Self {
             id,
             room,
             name,
             iconType,
             vec2seq,
+            terminator_threshold: config.terminator_threshold,
+            terminator_self_compare: config.terminator_self_compare,
         }
     }
     pub fn join_room(&mut self, room_name: &str, ctx: &mut ws::WebsocketContext<Self>) {
@@ -149,7 +155,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                                     );
                                     match self.vec2seq.lock() {
                                         Ok(x) => {
-                                            let s_m = match x.search_replies(message.text, true) {
+                                            let s_m = match x.search_replies(message.text, true, self.terminator_threshold, self.terminator_self_compare) {
                                                 Some(x) => {
                                                     let mut rng = thread_rng();
                                                     WsMessage::reply(Text {
@@ -163,25 +169,21 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                                                     text: "bot 決定跳過".to_string(),
                                                 }),
                                             };
-                                            self.send_msg(
-                                                json!(s_m)
-                                                .to_string(),
-                                            );
+                                            self.send_msg(json!(s_m).to_string());
                                         }
-                                        Err(_) => ()
-                                        // Err(e) => println!("{:?}", e),
+                                        Err(_) => (), // Err(e) => println!("{:?}", e),
                                     }
                                 }
-                            },
+                            }
                             WsMessage::pin(pin) => {
                                 self.send_msg(text.clone());
-                            },
+                            }
                             WsMessage::unpin => {
                                 self.send_msg(json!(WsMessage::unpin).to_string());
-                            },
+                            }
                             WsMessage::ping => {
                                 self.send_msg(json!(WsMessage::pong).to_string());
-                            },
+                            }
                             _ => (),
                         }
                     }

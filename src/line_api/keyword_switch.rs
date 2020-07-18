@@ -11,6 +11,8 @@ use std::result::Result;
 pub async fn switch(
     keyword: &str,
     vec2seq: &vec2seq_rust::Vec2Seq<'_>,
+    linebot_threshold: f32,
+    linebot_self_compare: Option<f32>,
 ) -> Result<line_api::LineReply, String> {
     lazy_static! {
         static ref VEC2SEQ_RULE: Regex = Regex::new(r"([^\.]+)(?:\.\.\.|…|⋯)$").unwrap();
@@ -28,7 +30,12 @@ pub async fn switch(
         if _keyword.is_none() {
             return Err(String::from("keyword fetch fail"));
         }
-        let replies = match vec2seq.search_replies(String::from(_keyword.unwrap().as_str()), true) {
+        let replies = match vec2seq.search_replies(
+            String::from(_keyword.unwrap().as_str()),
+            true,
+            linebot_threshold,
+            linebot_self_compare,
+        ) {
             Some(x) => x,
             None => vec![String::from("阿哈哈，螺絲不知道")],
         };
@@ -48,7 +55,7 @@ pub async fn switch(
                     original_content_url: keyword.to_string().clone(),
                     preview_image_url: keyword.to_string().clone(),
                 }],
-            })
+            });
         }
         let _keyword_iter = FIND_IMAGE_RULE.captures_iter(keyword).next();
         if _keyword_iter.is_none() {
