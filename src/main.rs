@@ -27,6 +27,7 @@ mod google_image;
 mod terminator;
 use terminator::{session::WsChatSession, WsChatServer};
 
+#[#[derive(Debug)]]
 pub struct Config {
     auth_token: String,
     linebot_threshold: f32,
@@ -141,6 +142,7 @@ async fn main() -> std::io::Result<()> {
         terminator_threshold,
         terminator_self_compare,
     }));
+    println!("{:?}", config);
     let vec2seq = Arc::new(Mutex::new(vec2seq_rust::Vec2Seq::new(
         std::path::Path::new("finalfusion.10e.w_zh_en_ptt.s60.pq.fifu"),
         std::path::Path::new("tfidf.bin"),
