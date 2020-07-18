@@ -155,11 +155,19 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                                     );
                                     match self.vec2seq.lock() {
                                         Ok(x) => {
-                                            let s_m = match x.search_replies(message.text, true, self.terminator_threshold, self.terminator_self_compare) {
+                                            let s_m = match x.search_replies(
+                                                message.text,
+                                                true,
+                                                self.terminator_threshold,
+                                                self.terminator_self_compare,
+                                            ) {
                                                 Some(x) => {
                                                     let mut rng = thread_rng();
                                                     WsMessage::reply(Text {
                                                         text: x
+                                                            .iter()
+                                                            .filter(|x| x.len() < 32)
+                                                            .collect::<Vec<&String>>()
                                                             .choose(&mut rng)
                                                             .unwrap()
                                                             .to_string(),
