@@ -27,7 +27,7 @@ mod google_image;
 mod terminator;
 use terminator::{session::WsChatSession, WsChatServer};
 
-#[#[derive(Debug)]]
+#[derive(Debug)]
 pub struct Config {
     auth_token: String,
     linebot_threshold: f32,
