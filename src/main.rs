@@ -70,6 +70,8 @@ async fn line_callback(
         &vec2seq.lock().unwrap(),
         guard.linebot_threshold,
         guard.linebot_self_compare,
+        guard.terminator_threshold,
+        guard.terminator_self_compare,
     )
     .await;
     info!("{:?}", _reply);
