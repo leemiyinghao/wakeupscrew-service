@@ -163,15 +163,17 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                                             ) {
                                                 Some(x) => {
                                                     let mut rng = thread_rng();
-                                                    WsMessage::reply(Text {
-                                                        text: x
-                                                            .iter()
-                                                            .filter(|x| x.len() < 32)
-                                                            .collect::<Vec<&String>>()
-                                                            .choose(&mut rng)
-                                                            .unwrap()
-                                                            .to_string(),
-                                                    })
+                                                    let texts = x
+                                                        .iter()
+                                                        .collect::<Vec<&String>>();
+                                                    match texts.choose(&mut rng); {
+                                                        Some(text) => WsMessage::reply(Text {
+                                                            text: text.to_string(),
+                                                        }),
+                                                        None => WsMessage::system_message(Text {
+                                                            text: "bot 決定跳過".to_string(),
+                                                        }),
+                                                    }
                                                 }
                                                 None => WsMessage::system_message(Text {
                                                     text: "bot 決定跳過".to_string(),
