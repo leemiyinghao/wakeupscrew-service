@@ -166,7 +166,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession<'st
                                                     let texts = x
                                                         .iter()
                                                         .collect::<Vec<&String>>();
-                                                    match texts.choose(&mut rng); {
+                                                    match texts.choose(&mut rng) {
                                                         Some(text) => WsMessage::reply(Text {
                                                             text: text.to_string(),
                                                         }),
