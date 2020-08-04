@@ -124,18 +124,14 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
         target = search(keyword, i).await?;
         i += 1;
         debug!("{:?}", target.img_url);
-        if !target.img_url.starts_with("https") {
-            let data = match download(target.img_url).await {
-                Ok(x) => x,
-                Err(_) => continue
-            };
-            match upload(data).await {
-                Ok(x) => break x,
-                Err(_) => continue,
-            }
-        } else {
-            break target.img_url;
+        let data = match download(target.img_url).await {
+            Ok(x) => x,
+            Err(_) => continue,
         };
+        match upload(data).await {
+            Ok(x) => break x,
+            Err(_) => continue,
+        }
     };
     Ok(ImageTarget {
         img_url: String::from(url),
