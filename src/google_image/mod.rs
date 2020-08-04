@@ -27,7 +27,7 @@ struct ImgurBasicResponse {
     success: bool,
     status: i64,
 }
-async fn search(keyword: &str) -> Result<ImageTarget, String> {
+async fn search(keyword: &str, num: usize) -> Result<ImageTarget, String> {
     //grab search page
     const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
     let https = HttpsConnector::new();
@@ -60,13 +60,12 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     // output.write(&buff).unwrap();
     let page = String::from_utf8_lossy(&buff);
     let target_rule =
-        regex::Regex::new(r#"\["(https?[^"]+\.(?:jpe?g|JPE?G|png|PNG))",\d+,\d+\]"#)
-            .unwrap();
+        regex::Regex::new(r#"\["(https?[^"]+\.(?:jpe?g|JPE?G|png|PNG))",\d+,\d+\]"#).unwrap();
     let m = target_rule.captures(&page[..]);
     if m.is_none() {
         return Err(String::from("img_url not found"));
     }
-    let img_url = m.unwrap().get(1);
+    let img_url = m.unwrap().get(num + 1);
     match img_url {
         Some(x) => Ok(ImageTarget {
             img_url: String::from(x.as_str()),
@@ -116,13 +115,27 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
     }
 }
 pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
-    let target: ImageTarget = search(keyword).await?;
-    debug!("{:?}", target.img_url);
-    let url = if !target.img_url.starts_with("https"){
-        let data = download(target.img_url).await?;
-        upload(data).await?
-    }else{
-        target.img_url
+    let mut target: ImageTarget;
+    let mut i = 0;
+    let url = loop {
+        if i > 5 {
+            return Err(String::from("not found"));
+        };
+        target = search(keyword, i).await?;
+        i += 1;
+        debug!("{:?}", target.img_url);
+        if !target.img_url.starts_with("https") {
+            let data = match download(target.img_url).await {
+                Ok(x) => x,
+                Err(_) => continue
+            };
+            match upload(data).await {
+                Ok(x) => break x,
+                Err(_) => continue,
+            }
+        } else {
+            break target.img_url;
+        };
     };
     Ok(ImageTarget {
         img_url: String::from(url),
@@ -133,7 +146,9 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
 #[test]
 pub fn test_google_image() {
     let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
-    let result = tokit_runtime.block_on(get("今日も一日がんばるぞい")).unwrap();
+    let result = tokit_runtime
+        .block_on(get("今日も一日がんばるぞい"))
+        .unwrap();
     println!("{:?}", result);
     assert_eq!(1 + 1, 2);
     let result2 = tokit_runtime.block_on(get("https://media.discordapp.net/attachments/483550384133111808/730210148785848390/65656859_2475814475772800_5557129747592380416_n"));
