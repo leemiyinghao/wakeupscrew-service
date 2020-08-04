@@ -32,7 +32,7 @@ async fn search(keyword: &str) -> Result<ImageTarget, String> {
     const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
-    let uri = format!("https://www.google.com/search?q={}&espv=2&biw=1920&bih=966&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
+    let uri = format!("https://www.google.com/search?q={}&espv=2&biw=1920&bih=966&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg&safe=active", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
     let mut request = Request::get(uri)
         .header(
             "Accept",
