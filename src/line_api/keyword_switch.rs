@@ -81,7 +81,7 @@ pub async fn switch(
                 }],
             },
             Err(x) => {
-                error!("{:?}", x);
+                warn!("{:?}", x);
                 line_api::LineReply {
                     reply_token: String::from(""),
                     messages: vec![line_api::LineMessageType::Text {
