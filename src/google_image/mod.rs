@@ -11,6 +11,7 @@ use tokio::runtime::Runtime;
 #[macro_use]
 use log;
 use env_logger;
+use std::time::Duration;
 
 #[derive(Debug)]
 pub struct ImageTarget {
@@ -31,7 +32,9 @@ async fn search(keyword: &str, num: usize) -> Result<ImageTarget, String> {
     //grab search page
     const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
     let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
+    let client = Client::builder()
+        .pool_idle_timeout(Duration::from_secs(30))
+        .build::<_, hyper::Body>(https);
     let uri = format!("https://www.google.com/search?q={}&espv=2&biw=1920&bih=966&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg&safe=active", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
     let mut request = Request::get(uri)
         .header(
@@ -78,10 +81,14 @@ async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
     let uri = url.parse().expect("uri encoding fail");
     let page = if url.starts_with("https") {
         let https = HttpsConnector::new();
-        let client = Client::builder().build::<_, hyper::Body>(https);
+        let client = Client::builder()
+            .pool_idle_timeout(Duration::from_secs(30))
+            .build::<_, hyper::Body>(https);
         client.get(uri).await
     } else {
-        let client = Client::new();
+        let client = Client::builder()
+            .pool_idle_timeout(Duration::from_secs(30))
+            .build_http::<hyper::Body>();
         client.get(uri).await
     };
     if page.is_err() {
@@ -92,7 +99,9 @@ async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
 }
 async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
     let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
+    let client = Client::builder()
+        .pool_idle_timeout(Duration::from_secs(30))
+        .build::<_, hyper::Body>(https);
     let request = Request::post("https://api.imgur.com/3/image")
         .header("Content-Type", "multipart/form-data")
         .header("Authorization", "Client-ID 6676bc4a87ab89c")
