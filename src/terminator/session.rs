@@ -34,9 +34,9 @@ impl WsChatSession<'static> {
         name: String,
         iconType: i32,
         vec2seq: web::Data<Arc<Mutex<vec2seq_rust::Vec2Seq<'static>>>>,
-        config: web::Data<Arc<Mutex<crate::Config>>>,
+        config: web::Data<Arc<crate::Config>>,
     ) -> Self {
-        let config = config.lock().unwrap();
+        let config = config;
         Self {
             id,
             room,

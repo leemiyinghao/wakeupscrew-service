@@ -1,17 +1,11 @@
-use hyper::{Body, Client, Request, Uri};
+use hyper::{Body, Client, Request};
 extern crate hyper_tls;
 use hyper_tls::HttpsConnector;
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-use scraper::{Html, Selector};
 use serde::Deserialize;
 use serde_json;
-use std::fs::File;
-use std::io::Write;
-use tokio::runtime::Runtime;
-#[macro_use]
-use log;
-use env_logger;
 use std::time::Duration;
+use tokio::runtime::Runtime;
 
 #[derive(Debug)]
 pub struct ImageTarget {
@@ -36,7 +30,7 @@ async fn search(keyword: &str, num: usize) -> Result<ImageTarget, String> {
         .pool_idle_timeout(Duration::from_secs(5))
         .build::<_, hyper::Body>(https);
     let uri = format!("https://www.google.com/search?q={}&espv=2&biw=1920&bih=966&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg&safe=active", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
-    let mut request = Request::get(uri)
+    let request = Request::get(uri)
         .header(
             "Accept",
             "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
