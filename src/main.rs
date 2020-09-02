@@ -64,6 +64,7 @@ async fn line_callback(
     let event = data.events.get(0).unwrap();
     info!("{}", event.message.text);
     let guard = config.lock().unwrap();
+    info!("config locked");
     //group history memorizer
     let _reply = line_api::keyword_switch::switch(
         &event.message.text[..],
