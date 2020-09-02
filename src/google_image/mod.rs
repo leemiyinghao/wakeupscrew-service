@@ -33,7 +33,7 @@ async fn search(keyword: &str, num: usize) -> Result<ImageTarget, String> {
     const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
     let https = HttpsConnector::new();
     let client = Client::builder()
-        .pool_idle_timeout(Duration::from_secs(30))
+        .pool_idle_timeout(Duration::from_secs(5))
         .build::<_, hyper::Body>(https);
     let uri = format!("https://www.google.com/search?q={}&espv=2&biw=1920&bih=966&site=webhp&source=lnms&tbm=isch&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg&safe=active", utf8_percent_encode(keyword, FRAGMENT).collect::<String>());
     let mut request = Request::get(uri)
@@ -82,12 +82,12 @@ async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
     let page = if url.starts_with("https") {
         let https = HttpsConnector::new();
         let client = Client::builder()
-            .pool_idle_timeout(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(5))
             .build::<_, hyper::Body>(https);
         client.get(uri).await
     } else {
         let client = Client::builder()
-            .pool_idle_timeout(Duration::from_secs(30))
+            .pool_idle_timeout(Duration::from_secs(5))
             .build_http::<hyper::Body>();
         client.get(uri).await
     };
@@ -100,7 +100,7 @@ async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
 async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
     let https = HttpsConnector::new();
     let client = Client::builder()
-        .pool_idle_timeout(Duration::from_secs(30))
+        .pool_idle_timeout(Duration::from_secs(5))
         .build::<_, hyper::Body>(https);
     let request = Request::post("https://api.imgur.com/3/image")
         .header("Content-Type", "multipart/form-data")
