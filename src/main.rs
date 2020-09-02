@@ -165,7 +165,8 @@ async fn main() -> std::io::Result<()> {
             .service(line_callback)
             .service(keepalive)
     })
-    .bind(format!("{}:{}", host, port))?
+    .bind(format!("{}:{}", host, port))?    
+    .workers(8)
     .run()
     .await
 }
