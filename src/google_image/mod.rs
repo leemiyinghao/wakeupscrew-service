@@ -121,7 +121,7 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
     let mut target: ImageTarget;
     let mut i = 0;
     let url = loop {
-        if i > 5 {
+        if i > 20 {
             return Err(String::from("not found"));
         };
         target = search(keyword, i).await?;
