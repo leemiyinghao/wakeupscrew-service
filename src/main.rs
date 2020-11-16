@@ -64,7 +64,7 @@ async fn line_callback(
         guard.linebot_self_compare,
         guard.terminator_threshold,
         guard.terminator_self_compare,
-        gurad.imgur_auth_token
+        &guard.imgur_auth_token
     )
     .await;
     info!("{:?}", _reply);

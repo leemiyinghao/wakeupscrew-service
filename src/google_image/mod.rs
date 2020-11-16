@@ -91,7 +91,7 @@ async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
     let buf = hyper::body::to_bytes(page.unwrap()).await.unwrap();
     Ok(Box::new(buf))
 }
-async fn upload(data: Box<bytes::Bytes>, imgur_auth_token:String) -> Result<String, String> {
+async fn upload(data: Box<bytes::Bytes>, imgur_auth_token: &str) -> Result<String, String> {
     let https = HttpsConnector::new();
     let client = Client::builder()
         .pool_idle_timeout(Duration::from_secs(5))
@@ -117,7 +117,7 @@ async fn upload(data: Box<bytes::Bytes>, imgur_auth_token:String) -> Result<Stri
         Err(x) => Err(format!("Imgur response parse fail: {:?}, {:?}", x, bbuf)),
     }
 }
-pub async fn get(keyword: &str, imgur_auth_token: String) -> Result<ImageTarget, String> {
+pub async fn get(keyword: &str, imgur_auth_token: &str) -> Result<ImageTarget, String> {
     let mut target: ImageTarget;
     let mut i = 0;
     let url = loop {
@@ -146,11 +146,11 @@ pub async fn get(keyword: &str, imgur_auth_token: String) -> Result<ImageTarget,
 pub fn test_google_image() {
     let mut tokit_runtime = Runtime::new().expect("tokio runtime fail");
     let result = tokit_runtime
-        .block_on(get("今日も一日がんばるぞい"))
+        .block_on(get("今日も一日がんばるぞい", ""))
         .unwrap();
     println!("{:?}", result);
     assert_eq!(1 + 1, 2);
-    let result2 = tokit_runtime.block_on(get("https://media.discordapp.net/attachments/483550384133111808/730210148785848390/65656859_2475814475772800_5557129747592380416_n"));
+    let result2 = tokit_runtime.block_on(get("https://media.discordapp.net/attachments/483550384133111808/730210148785848390/65656859_2475814475772800_5557129747592380416_n", ""));
     println!("{:?}", result2);
     assert_eq!(result2.is_err(), true);
 }

@@ -17,7 +17,7 @@ pub async fn switch(
     linebot_self_compare: Option<f32>,
     terminator_threshold: f32,
     terminator_self_compare: Option<f32>,
-    imgur_auth_token: String,
+    imgur_auth_token: &str,
 ) -> Result<line_api::LineReply, String> {
     lazy_static! {
         static ref VEC2SEQ_RULE: Regex = Regex::new(r"([^\.]+)(?:\.\.\.|…|⋯)$").unwrap();
