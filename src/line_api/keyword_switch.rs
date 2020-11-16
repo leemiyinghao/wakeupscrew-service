@@ -17,6 +17,7 @@ pub async fn switch(
     linebot_self_compare: Option<f32>,
     terminator_threshold: f32,
     terminator_self_compare: Option<f32>,
+    imgur_auth_token: String,
 ) -> Result<line_api::LineReply, String> {
     lazy_static! {
         static ref VEC2SEQ_RULE: Regex = Regex::new(r"([^\.]+)(?:\.\.\.|…|⋯)$").unwrap();
@@ -71,7 +72,7 @@ pub async fn switch(
         if _keyword.is_none() {
             return Err(String::from("keyword fetch fail"));
         }
-        let image = google_image::get(_keyword.unwrap().as_str()).await;
+        let image = google_image::get(_keyword.unwrap().as_str(), imgur_auth_token).await;
         return Ok(match image {
             Ok(x) => line_api::LineReply {
                 reply_token: String::from(""),

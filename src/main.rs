@@ -24,6 +24,7 @@ pub struct Config {
     linebot_self_compare: Option<f32>,
     terminator_threshold: f32,
     terminator_self_compare: Option<f32>,
+    imgur_auth_token: String,
 }
 
 async fn reply<'a>(
@@ -63,6 +64,7 @@ async fn line_callback(
         guard.linebot_self_compare,
         guard.terminator_threshold,
         guard.terminator_self_compare,
+        gurad.imgur_auth_token
     )
     .await;
     info!("{:?}", _reply);
@@ -106,6 +108,13 @@ async fn main() -> std::io::Result<()> {
             "".to_string()
         }
     };
+    let imgur_auth_token: String = match env::var("IMGUR_AUTH_TOKEN") {
+        Ok(x) => x,
+        Err(_) => {
+            error!("server runs without line api key: AUTH_TOKEN, set one at .env or shell env.");
+            "".to_string()
+        }
+    };
     let linebot_threshold: f32 = match env::var("LINEBOT_THRESHOLD") {
         Ok(x) => x.parse().unwrap_or(0.75f32),
         Err(_) => 0.75f32,
@@ -134,6 +143,7 @@ async fn main() -> std::io::Result<()> {
         linebot_self_compare,
         terminator_threshold,
         terminator_self_compare,
+        imgur_auth_token,
     });
     println!("{:?}", config);
     let vec2seq = Arc::new(Mutex::new(vec2seq_rust::Vec2Seq::new(

@@ -91,14 +91,14 @@ async fn download(url: String) -> Result<Box<bytes::Bytes>, String> {
     let buf = hyper::body::to_bytes(page.unwrap()).await.unwrap();
     Ok(Box::new(buf))
 }
-async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
+async fn upload(data: Box<bytes::Bytes>, imgur_auth_token:String) -> Result<String, String> {
     let https = HttpsConnector::new();
     let client = Client::builder()
         .pool_idle_timeout(Duration::from_secs(5))
         .build::<_, hyper::Body>(https);
     let request = Request::post("https://api.imgur.com/3/image")
         .header("Content-Type", "multipart/form-data")
-        .header("Authorization", "Client-ID 6676bc4a87ab89c")
+        .header("Authorization", format!("Client-ID {}", imgur_auth_token))
         .body(Body::from(*data))
         .expect("construct fail"); //should not happened
     let page = client.request(request).await;
@@ -117,7 +117,7 @@ async fn upload(data: Box<bytes::Bytes>) -> Result<String, String> {
         Err(x) => Err(format!("Imgur response parse fail: {:?}, {:?}", x, bbuf)),
     }
 }
-pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
+pub async fn get(keyword: &str, imgur_auth_token: String) -> Result<ImageTarget, String> {
     let mut target: ImageTarget;
     let mut i = 0;
     let url = loop {
@@ -131,7 +131,7 @@ pub async fn get(keyword: &str) -> Result<ImageTarget, String> {
             Ok(x) => x,
             Err(_) => continue,
         };
-        match upload(data).await {
+        match upload(data, imgur_auth_token).await {
             Ok(x) => break x,
             Err(_) => continue,
         }
