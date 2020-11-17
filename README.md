@@ -20,5 +20,7 @@ In process of refactoring, the NLP reply core became an [independent craft](http
 
 # Ref
 [PTT Gossiping Corpus fit for training](https://github.com/zake7749/Gossiping-Chinese-Corpus)
+
 [WakeUpScrew(Python Version)](https://github.com/leemiyinghao/wakeupscrew)
+
 [Vec2Seq](https://github.com/leemiyinghao/vec2seq-rust)
