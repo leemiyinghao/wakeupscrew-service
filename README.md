@@ -1,34 +1,24 @@
-# Example application: Rust, Actix & Heroku
+# WakeUpScrew
 
-[![Build Status](https://travis-ci.org/emk/rust-buildpack-example-actix.svg?branch=master)](https://travis-ci.org/emk/rust-buildpack-example-actix)
+WakeUpScrew is a Line targeted Chatbot project, based on NLP technology.  
+It's aimed to build a fun and accurate chat experience in daily IM chat.
 
-[Rust][] is a language suitable for high-peformance, reliable web services. [Actix][] is a popular Rust web framework. [Heroku][] deploys, manages and scales web applications.
+## Refactor
 
-[Rust]: https://www.rust-lang.org/
-[Actix]: https://actix.rs/
-[Heroku]: https://www.heroku.com/
+The repo here is a Rust refactor version of original [WakeUpScrew](https://github.com/leemiyinghao/wakeupscrew), which was written in Python, flask, and Tensorflow.
 
-To deploy this application to Heroku, use this button:
+The reason to refactor from Python to Rust is due to the termination of self-hosting server and limitation of the new hosting environment. After refactoring, it's memory usage shrink from around 20GB to 500MB. Concurrency performance also gain a lot.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+In process of refactoring, the NLP reply core became an [independent craft](https://github.com/leemiyinghao/vec2seq-rust) to achieve decoupling.
 
-Or, if you'd prefer to use the command line, try running:
+## Chat Demonstration
 
-``` sh
-git clone https://github.com/emk/rust-buildpack-example-actix.git
-cd rust-buildpack-example-actix
-heroku create --buildpack emk/rust
-git push heroku master
-```
+![](https://github.com/leemiyinghao/wakeupscrew-service/blob/main/20gJ8PNDs4Ea9JkYiuBcw7.jpg)
+![](https://github.com/leemiyinghao/wakeupscrew-service/blob/main/2XRlJnlT7k8Jo7sM0xWSJI.jpg)
+![](https://github.com/leemiyinghao/wakeupscrew-service/blob/main/4DMwI4wlJz4FFECo4gwBuh.jpg)
+![](https://github.com/leemiyinghao/wakeupscrew-service/blob/main/6zX84v3OSqUCX2B05enNOt.jpg)
 
-This should make a local copy of this application and deploy it to Heroku.
-
-For further instructions, see the [page for this buildpack][buildpack].
-
-[buildpack]: https://github.com/emk/heroku-buildpack-rust
-
-## Does this work with the latest version of Rust?
-
-This application works with version 1.31 of Rust, which theoretically means
-that it should run on any future 1.x release of Rust. If it doesn't work,
-please file a bug.
+# Ref
+[PTT Gossiping Corpus fit for training](https://github.com/zake7749/Gossiping-Chinese-Corpus)
+[WakeUpScrew(Python Version)](https://github.com/leemiyinghao/wakeupscrew)
+[Vec2Seq](https://github.com/leemiyinghao/vec2seq-rust)
